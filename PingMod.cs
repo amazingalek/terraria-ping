@@ -1,4 +1,6 @@
+using System;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Terraria;
 using Terraria.ModLoader;
 
@@ -6,6 +8,8 @@ namespace PingMod
 {
     public class PingMod : Mod
     {
+        public static event Action OnPostDrawInterface;
+
         private Projectile _ping;
 
         public override void Load()
@@ -18,9 +22,14 @@ namespace PingMod
             if (Main.playerLoaded && _ping == null || !_ping.active)
             {
                 _ping = Projectile.NewProjectileDirect(Main.MouseWorld, Vector2.Zero, ModContent.ProjectileType<Ping>(), 0, 0, Main.myPlayer);
-                //_ping.hide = true;
+                _ping.hide = true;
                 Main.NewText("Created ping");
             }
+        }
+
+        public override void PostDrawInterface(SpriteBatch spriteBatch)
+        {
+            OnPostDrawInterface?.Invoke();
         }
 
         //public override void HandlePacket(BinaryReader reader, int whoAmI)

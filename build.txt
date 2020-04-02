@@ -1,0 +1,3 @@
+displayName = Ping the map
+author = Alek
+version = 0.1

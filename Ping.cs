@@ -86,6 +86,10 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnFullscreenMap()
         {
+            if (projectile.hide)
+            {
+                return;
+            }
             const float num6 = 10f;
             const float num7 = 10f;
             const byte b = byte.MaxValue;
@@ -127,7 +131,7 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnMiniMap()
         {
-            if (Main.mapStyle != 1)
+            if (Main.mapStyle != 1 || projectile.hide)
             {
                 return;
             }
@@ -172,6 +176,10 @@ namespace PingMod
         // Based on Main.DrawInterface_20_MultiplayerPlayerNames
         private void DrawDistanceMarker()
         {
+            if (projectile.hide)
+            {
+                return;
+            }
             var screenWidth = Main.screenWidth;
             var screenHeight = Main.screenHeight;
             var screenPosition = Main.screenPosition;

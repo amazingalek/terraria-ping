@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ReLogic.Graphics;
 using Terraria;
+using Terraria.GameInput;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
@@ -15,8 +16,15 @@ namespace PingMod
 
         private bool _isMoving;
 
+        public Ping()
+        {
+            PingMod.OnPostDrawInterface += PostDrawInterface;
+        }
+
         public override void SetDefaults()
         {
+            projectile.light = 0.5f;
+
             projectile.width = 10;
             projectile.height = 10;
 
@@ -37,6 +45,7 @@ namespace PingMod
                 if (Main.mouseLeft && Keyboard.GetState().IsKeyDown(Keys.LeftAlt))
                 {
                     projectile.position = Main.MouseWorld;
+                    projectile.hide = false;
                     _isMoving = true;
                 }
 
@@ -52,8 +61,66 @@ namespace PingMod
             projectile.timeLeft = 100;
         }
 
-        // Based on Main.DrawInterface_20_MultiplayerPlayerNames
         public override void PostDraw(SpriteBatch spriteBatch, Color lightColor)
+        {
+            DrawDistanceMarker();
+        }
+
+        private void PostDrawInterface()
+        {
+            DrawOnMiniMap();
+        }
+
+        // Based on Main.DrawMap
+        private void DrawOnMiniMap()
+        {
+            if (Main.mapStyle == 1)
+            {
+                var effects2 = SpriteEffects.None;
+                var num145 = (Main.screenPosition.X + PlayerInput.RealScreenWidth / 2) / 16f;
+                var num28 = (Main.screenPosition.Y + PlayerInput.RealScreenHeight / 2) / 16f;
+                var num16 = Main.mapMinimapScale;
+                var num14 = Main.miniMapWidth / num16;
+                var num15 = Main.miniMapHeight / num16;
+                var num12 = (int)num145 - num14 / 2f;
+                var num60 = ((projectile.position.X + projectile.width / 2) / 16f - num12) * num16;
+                var num13 = (int)num28 - num15 / 2f;
+                var num61 = ((projectile.position.Y + projectile.gfxOffY + projectile.height / 2) / 16f - num13) * num16;
+                var num = (float)Main.miniMapX;
+                var num2 = (float)Main.miniMapY;
+                var num3 = num;
+                var num4 = num2;
+                num60 += num3;
+                num61 += num4;
+                num61 -= 2f * num16 / 5f;
+                if (num60 > Main.miniMapX + 12 && num60 < Main.miniMapX + Main.miniMapWidth - 16 &&
+                    num61 > Main.miniMapY + 10 && num61 < Main.miniMapY + Main.miniMapHeight - 14)
+                {
+                    var type = ModContent.ProjectileType<Ping>();
+                    var texture = Main.projectileTexture[type];
+                    var num10 = -(num145 - (int)((Main.screenPosition.X + PlayerInput.RealScreenWidth / 2) / 16f)) * num16;
+                    var num11 = -(num28 - (int)((Main.screenPosition.Y + PlayerInput.RealScreenHeight / 2) / 16f)) * num16;
+                    var b = (byte)(255f * Main.mapMinimapAlpha);
+                    var num57 = (num16 * 0.25f * 2f + 1f) / 3f;
+                    Main.spriteBatch.Draw(texture, new Vector2(num60 + num10, num61 + num11),
+                        new Rectangle(0, 0, texture.Width, texture.Height), new Color(b, b, b, b), projectile.rotation,
+                        new Vector2(texture.Width / 2, texture.Height / 2), num57, effects2, 0f);
+                    var num62 = num60 - texture.Width / 2 * num57;
+                    var num63 = num61 - texture.Height / 2 * num57;
+                    var num64 = num62 + texture.Width * num57;
+                    var num65 = num63 + texture.Height * num57;
+                    if (Main.mouseX >= num62 && Main.mouseX <= num64 && Main.mouseY >= num63 && Main.mouseY <= num65)
+                    {
+                        var owner = Main.player[projectile.owner];
+                        var text = owner.name + "s ping";
+                        Main.instance.MouseText(text);
+                    }
+                }
+            }
+        }
+
+        // Based on Main.DrawInterface_20_MultiplayerPlayerNames
+        private void DrawDistanceMarker()
         {
             var screenWidth = Main.screenWidth;
             var screenHeight = Main.screenHeight;

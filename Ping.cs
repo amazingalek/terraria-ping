@@ -4,7 +4,9 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ReLogic.Graphics;
 using Terraria;
+using Terraria.Audio;
 using Terraria.GameInput;
+using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
 
@@ -15,6 +17,9 @@ namespace PingMod
         private const float RotationSpeed = 0.05f;
 
         private bool _isMoving;
+
+        private Player Owner => Main.player[projectile.owner];
+        private string PingLabel => Owner.name + "s ping";
 
         public Ping()
         {
@@ -35,7 +40,7 @@ namespace PingMod
 
         public override void AI()
         {
-            if (!Main.player[projectile.owner].active)
+            if (!Owner.active)
             {
                 projectile.Kill();
                 projectile.netUpdate = true;
@@ -54,12 +59,23 @@ namespace PingMod
                 {
                     _isMoving = false;
                     projectile.netUpdate = true;
-                    Main.NewText("Moved ping");
+                    PlaySound();
+                    Main.NewText("You pinged");
                 }
+            }
+            else if (projectile.position != projectile.oldPosition)
+            {
+                Main.NewText(Owner.name + " pinged");
+                PlaySound();
             }
 
             projectile.rotation += RotationSpeed;
             projectile.timeLeft = 100;
+        }
+
+        private void PlaySound()
+        {
+            Main.PlaySound(new LegacySoundStyle(SoundID.Unlock, 0), projectile.position);
         }
 
         public override void PostDraw(SpriteBatch spriteBatch, Color lightColor)
@@ -104,9 +120,7 @@ namespace PingMod
             var num116 = num114 + texture.Height * num108;
             if (Main.mouseX >= num113 && Main.mouseX <= num115 && Main.mouseY >= num114 && Main.mouseY <= num116)
             {
-                var owner = Main.player[projectile.owner];
-                var text = owner.name + "s ping";
-                Main.instance.MouseText(text);
+                Main.instance.MouseText(PingLabel);
             }
         }
 
@@ -150,9 +164,7 @@ namespace PingMod
                 var num65 = num63 + texture.Height * num57;
                 if (Main.mouseX >= num62 && Main.mouseX <= num64 && Main.mouseY >= num63 && Main.mouseY <= num65)
                 {
-                    var owner = Main.player[projectile.owner];
-                    var text = owner.name + "s ping";
-                    Main.instance.MouseText(text);
+                    Main.instance.MouseText(PingLabel);
                 }
             }
         }
@@ -163,19 +175,17 @@ namespace PingMod
             var screenWidth = Main.screenWidth;
             var screenHeight = Main.screenHeight;
             var screenPosition = Main.screenPosition;
-            var owner = Main.player[projectile.owner];
 
-            var pingLabel = owner.name + "s ping";
-            var pingLabelPos = Main.fontMouseText.MeasureString(pingLabel);
+            var pingLabelPos = Main.fontMouseText.MeasureString(PingLabel);
             var pingLabelPosYNegative = 0f;
-            if (owner.chatOverhead.timeLeft > 0)
+            if (Owner.chatOverhead.timeLeft > 0)
             {
                 pingLabelPosYNegative = -pingLabelPos.Y;
             }
             var screenCenter = new Vector2(screenWidth / 2 + screenPosition.X, screenHeight / 2 + screenPosition.Y);
             var pingPos = projectile.position;
             var distance2 = 0f;
-            var color = owner.team < 1 ? Color.White : Main.teamColor[owner.team];
+            var color = Owner.team < 1 ? Color.White : Main.teamColor[Owner.team];
             var distanceX = pingPos.X + projectile.width / 2 - screenCenter.X;
             var distanceY = pingPos.Y - pingLabelPos.Y - 2f + pingLabelPosYNegative - screenCenter.Y;
             var distance = (float)Math.Sqrt(distanceX * distanceX + distanceY * distanceY);
@@ -205,7 +215,7 @@ namespace PingMod
             {
                 pingLabelPos.Y = screenHeight - pingLabelPos.Y;
             }
-            var pingLabelPos2 = Main.fontMouseText.MeasureString(pingLabel);
+            var pingLabelPos2 = Main.fontMouseText.MeasureString(PingLabel);
             if (distance2 > 0f)
             {
                 var distanceTextValue = Language.GetTextValue("GameUI.PlayerDistance", (int)(distance2 / 16f * 2f));
@@ -218,11 +228,11 @@ namespace PingMod
                 Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTestPosition.X, distanceTestPosition.Y + 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
                 Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, distanceTestPosition, color, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
             }
-            Main.spriteBatch.DrawString(Main.fontMouseText, pingLabel, new Vector2(pingLabelPos.X - 2f, pingLabelPos.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-            Main.spriteBatch.DrawString(Main.fontMouseText, pingLabel, new Vector2(pingLabelPos.X + 2f, pingLabelPos.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-            Main.spriteBatch.DrawString(Main.fontMouseText, pingLabel, new Vector2(pingLabelPos.X, pingLabelPos.Y - 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-            Main.spriteBatch.DrawString(Main.fontMouseText, pingLabel, new Vector2(pingLabelPos.X, pingLabelPos.Y + 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-            Main.spriteBatch.DrawString(Main.fontMouseText, pingLabel, pingLabelPos, color, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+            Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, new Vector2(pingLabelPos.X - 2f, pingLabelPos.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+            Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, new Vector2(pingLabelPos.X + 2f, pingLabelPos.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+            Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, new Vector2(pingLabelPos.X, pingLabelPos.Y - 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+            Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, new Vector2(pingLabelPos.X, pingLabelPos.Y + 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+            Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, pingLabelPos, color, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
         }
 
     }

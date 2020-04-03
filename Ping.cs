@@ -50,7 +50,7 @@ namespace PingMod
             {
                 if (Main.mouseLeft && Keyboard.GetState().IsKeyDown(Keys.LeftAlt))
                 {
-                    projectile.position = Main.MouseWorld;
+                    projectile.position = GetPingPosition();
                     projectile.hide = false;
                     _isMoving = true;
                 }
@@ -71,6 +71,44 @@ namespace PingMod
 
             projectile.rotation += RotationSpeed;
             projectile.timeLeft = 100;
+        }
+
+        private Vector2 GetPingPosition()
+        {
+            var mousePos = Main.MouseScreen;
+            if (Main.mapFullscreen)
+            {
+                Main.NewText("Mouse in fullscreen map");
+                return GetFullscreenMapToWorldPos(mousePos);
+            }
+            if (InMinimap(mousePos))
+            {
+                Main.NewText("Mouse in minimap");
+                return GetMinimapToWorldPos(mousePos);
+            }
+            Main.NewText("Mouse in world");
+            return Main.MouseWorld;
+        }
+
+        private bool InMinimap(Vector2 mousePos)
+        {
+            var miniMapX = Main.miniMapX * Main.UIScale;
+            var miniMapY = Main.miniMapY * Main.UIScale;
+            var miniMapWidth = Main.miniMapWidth * Main.UIScale;
+            var miniMapHeight = Main.miniMapHeight * Main.UIScale;
+            return Main.mapStyle == 1 &&
+                   mousePos.X > miniMapX && mousePos.X < miniMapX + miniMapWidth &&
+                   mousePos.Y > miniMapY && mousePos.Y < miniMapY + miniMapHeight;
+        }
+
+        private Vector2 GetMinimapToWorldPos(Vector2 mousePos)
+        {
+            return Owner.position; // todo
+        }
+
+        private Vector2 GetFullscreenMapToWorldPos(Vector2 mousePos)
+        {
+            return Owner.position; // todo
         }
 
         private void PlaySound()

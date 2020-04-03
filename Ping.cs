@@ -103,12 +103,28 @@ namespace PingMod
 
         private Vector2 GetMinimapToWorldPos(Vector2 mousePos)
         {
+            // get tile in minimap
+            // get same tile in world map
+            // more precision: where in tile?
             return Owner.position; // todo
         }
 
         private Vector2 GetFullscreenMapToWorldPos(Vector2 mousePos)
         {
-            return Owner.position; // todo
+            var num20 = Main.mapFullscreenPos.X;
+            var num21 = Main.mapFullscreenPos.Y;
+            var num16 = Main.mapFullscreenScale;
+            num20 *= num16;
+            num21 *= num16;
+            var num = -num20 + Main.screenWidth / 2;
+            var num2 = -num21 + Main.screenHeight / 2;
+            var num6 = 10f;
+            var num7 = 10f;
+            num += num6 * num16;
+            num2 += num7 * num16;
+            var num88 = (int)((-num + mousePos.X) / num16 + num6) * 16;
+            var num89 = (int)((-num2 + mousePos.Y) / num16 + num7) * 16;
+            return new Vector2(num88, num89);
         }
 
         private void PlaySound()

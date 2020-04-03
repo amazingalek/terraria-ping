@@ -20,6 +20,7 @@ namespace PingMod
 
         private Player Owner => Main.player[projectile.owner];
         private string PingLabel => Owner.name + "s ping";
+        private Texture2D Sprite => Main.projectileTexture[projectile.type];
 
         public Ping()
         {
@@ -29,8 +30,6 @@ namespace PingMod
 
         public override void SetDefaults()
         {
-            projectile.light = 0.5f;
-
             projectile.width = 10;
             projectile.height = 10;
 
@@ -140,6 +139,16 @@ namespace PingMod
         public override void PostDraw(SpriteBatch spriteBatch, Color lightColor)
         {
             DrawDistanceMarker();
+            DrawGlowMask();
+        }
+
+        private void DrawGlowMask()
+        {
+            var posX = projectile.position.X - Main.screenPosition.X + projectile.width * 0.5f + 1f;
+            var posY = projectile.position.Y - Main.screenPosition.Y + projectile.height - Sprite.Height * 0.5f + 11f;
+            Main.spriteBatch.Draw(Sprite, new Vector2(posX, posY),
+                new Rectangle(0, 0, Sprite.Width, Sprite.Height), Color.White, 
+                projectile.rotation, Sprite.Size() * 0.5f, 1, SpriteEffects.None, 0f);
         }
 
         // Based on Main.DrawMap
@@ -171,16 +180,14 @@ namespace PingMod
             num111 -= 10f * num16;
             num112 -= 10f * num16;
 
-            var texture = Main.projectileTexture[projectile.type];
+            Main.spriteBatch.Draw(Sprite, new Vector2(num111, num112),
+                new Rectangle(0, 0, Sprite.Width, Sprite.Height), new Color(b, b, b, b), projectile.rotation,
+                new Vector2(Sprite.Width / 2, Sprite.Height / 2), num108 / 2, SpriteEffects.None, 0f);
 
-            Main.spriteBatch.Draw(texture, new Vector2(num111, num112),
-                new Rectangle(0, 0, texture.Width, texture.Height), new Color(b, b, b, b), projectile.rotation,
-                new Vector2(texture.Width / 2, texture.Height / 2), num108 / 2, SpriteEffects.None, 0f);
-
-            var num113 = num111 - texture.Width / 2 * num108;
-            var num114 = num112 - texture.Height / 2 * num108;
-            var num115 = num113 + texture.Width * num108;
-            var num116 = num114 + texture.Height * num108;
+            var num113 = num111 - Sprite.Width / 2 * num108;
+            var num114 = num112 - Sprite.Height / 2 * num108;
+            var num115 = num113 + Sprite.Width * num108;
+            var num116 = num114 + Sprite.Height * num108;
             if (Main.mouseX >= num113 && Main.mouseX <= num115 && Main.mouseY >= num114 && Main.mouseY <= num116)
             {
                 Main.instance.MouseText(PingLabel);
@@ -213,18 +220,17 @@ namespace PingMod
             if (num60 > Main.miniMapX + 12 && num60 < Main.miniMapX + Main.miniMapWidth - 16 &&
                 num61 > Main.miniMapY + 10 && num61 < Main.miniMapY + Main.miniMapHeight - 14)
             {
-                var texture = Main.projectileTexture[projectile.type];
                 var num10 = -(num145 - (int)((Main.screenPosition.X + PlayerInput.RealScreenWidth / 2) / 16f)) * num16;
                 var num11 = -(num28 - (int)((Main.screenPosition.Y + PlayerInput.RealScreenHeight / 2) / 16f)) * num16;
                 var b = (byte)(255f * Main.mapMinimapAlpha);
                 var num57 = (num16 * 0.25f * 2f + 1f) / 3f;
-                Main.spriteBatch.Draw(texture, new Vector2(num60 + num10, num61 + num11),
-                    new Rectangle(0, 0, texture.Width, texture.Height), new Color(b, b, b, b), projectile.rotation,
-                    new Vector2(texture.Width / 2, texture.Height / 2), num57, SpriteEffects.None, 0f);
-                var num62 = num60 - texture.Width / 2 * num57;
-                var num63 = num61 - texture.Height / 2 * num57;
-                var num64 = num62 + texture.Width * num57;
-                var num65 = num63 + texture.Height * num57;
+                Main.spriteBatch.Draw(Sprite, new Vector2(num60 + num10, num61 + num11),
+                    new Rectangle(0, 0, Sprite.Width, Sprite.Height), new Color(b, b, b, b), projectile.rotation,
+                    new Vector2(Sprite.Width / 2, Sprite.Height / 2), num57, SpriteEffects.None, 0f);
+                var num62 = num60 - Sprite.Width / 2 * num57;
+                var num63 = num61 - Sprite.Height / 2 * num57;
+                var num64 = num62 + Sprite.Width * num57;
+                var num65 = num63 + Sprite.Height * num57;
                 if (Main.mouseX >= num62 && Main.mouseX <= num64 && Main.mouseY >= num63 && Main.mouseY <= num65)
                 {
                     Main.instance.MouseText(PingLabel);

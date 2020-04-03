@@ -103,28 +103,33 @@ namespace PingMod
 
         private Vector2 GetMinimapToWorldPos(Vector2 mousePos)
         {
-            // get tile in minimap
-            // get same tile in world map
-            // more precision: where in tile?
-            return Owner.position; // todo
+            const int constant = 120;
+            var multiplier = 16 / Main.mapMinimapScale / Main.UIScale;
+
+            var offsetX = mousePos.X - Main.miniMapX * Main.UIScale;
+            var offsetY = mousePos.Y - Main.miniMapY * Main.UIScale;
+
+            var startX = Main.player[Main.myPlayer].position.X - constant * multiplier * Main.UIScale;
+            var startY = Main.player[Main.myPlayer].position.Y - constant * multiplier * Main.UIScale;
+
+            var worldPosX = startX + offsetX * multiplier;
+            var worldPosY = startY + offsetY * multiplier;
+
+            return new Vector2(worldPosX, worldPosY);
         }
 
         private Vector2 GetFullscreenMapToWorldPos(Vector2 mousePos)
         {
-            var num20 = Main.mapFullscreenPos.X;
-            var num21 = Main.mapFullscreenPos.Y;
-            var num16 = Main.mapFullscreenScale;
-            num20 *= num16;
-            num21 *= num16;
-            var num = -num20 + Main.screenWidth / 2;
-            var num2 = -num21 + Main.screenHeight / 2;
-            var num6 = 10f;
-            var num7 = 10f;
-            num += num6 * num16;
-            num2 += num7 * num16;
-            var num88 = (int)((-num + mousePos.X) / num16 + num6) * 16;
-            var num89 = (int)((-num2 + mousePos.Y) / num16 + num7) * 16;
-            return new Vector2(num88, num89);
+            const float multiplier1 = 10;
+            const float multiplier2 = 16;
+            var mapScale = Main.mapFullscreenScale;
+            var mapPosX = Main.mapFullscreenPos.X * mapScale;
+            var mapPosY = Main.mapFullscreenPos.Y * mapScale;
+            var posOffsetX = -mapPosX + Main.screenWidth / 2 + multiplier1 * mapScale;
+            var posOffsetY = -mapPosY + Main.screenHeight / 2 + multiplier1 * mapScale;
+            var worldPosX = (int)((-posOffsetX + mousePos.X) / mapScale + multiplier1) * multiplier2;
+            var worldPosY = (int)((-posOffsetY + mousePos.Y) / mapScale + multiplier1) * multiplier2;
+            return new Vector2(worldPosX, worldPosY);
         }
 
         private void PlaySound()

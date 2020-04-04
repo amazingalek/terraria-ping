@@ -74,7 +74,7 @@ namespace PingMod
 
         private Vector2 GetPingPosition()
         {
-            var mousePos = Main.MouseScreen;
+            var mousePos = GetUnzoomedMousePos();
             if (Main.mapFullscreen)
             {
                 Main.NewText("Mouse in fullscreen map");
@@ -89,31 +89,27 @@ namespace PingMod
             return Main.MouseWorld;
         }
 
+        private Vector2 GetUnzoomedMousePos()
+        {
+            PlayerInput.SetZoom_UI();
+            var mousePos = Main.MouseScreen;
+            PlayerInput.SetZoom_World();
+            return mousePos;
+        }
+
         private bool InMinimap(Vector2 mousePos)
         {
-            var miniMapX = Main.miniMapX * Main.UIScale;
-            var miniMapY = Main.miniMapY * Main.UIScale;
-            var miniMapWidth = Main.miniMapWidth * Main.UIScale;
-            var miniMapHeight = Main.miniMapHeight * Main.UIScale;
             return Main.mapStyle == 1 &&
-                   mousePos.X > miniMapX && mousePos.X < miniMapX + miniMapWidth &&
-                   mousePos.Y > miniMapY && mousePos.Y < miniMapY + miniMapHeight;
+                   mousePos.X > Main.miniMapX &&
+                   mousePos.X < Main.miniMapX + Main.miniMapWidth &&
+                   mousePos.Y > Main.miniMapY &&
+                   mousePos.Y < Main.miniMapY + Main.miniMapHeight;
         }
 
         private Vector2 GetMinimapToWorldPos(Vector2 mousePos)
         {
-            const int constant = 120;
-            var multiplier = 16 / Main.mapMinimapScale / Main.UIScale;
-
-            var offsetX = mousePos.X - Main.miniMapX * Main.UIScale;
-            var offsetY = mousePos.Y - Main.miniMapY * Main.UIScale;
-
-            var startX = Main.player[Main.myPlayer].position.X - constant * multiplier * Main.UIScale;
-            var startY = Main.player[Main.myPlayer].position.Y - constant * multiplier * Main.UIScale;
-
-            var worldPosX = startX + offsetX * multiplier;
-            var worldPosY = startY + offsetY * multiplier;
-
+            var worldPosX = Main.player[Main.myPlayer].position.X + (16 * (mousePos.X - Main.miniMapX) - 1920) / Main.mapMinimapScale;
+            var worldPosY = Main.player[Main.myPlayer].position.Y + (16 * (mousePos.Y - Main.miniMapY) - 1920) / Main.mapMinimapScale;
             return new Vector2(worldPosX, worldPosY);
         }
 
@@ -126,9 +122,9 @@ namespace PingMod
             var mapPosY = Main.mapFullscreenPos.Y * mapScale;
             var posOffsetX = -mapPosX + Main.screenWidth / 2 + multiplier1 * mapScale;
             var posOffsetY = -mapPosY + Main.screenHeight / 2 + multiplier1 * mapScale;
-            var worldPosX = (int)((-posOffsetX + mousePos.X) / mapScale + multiplier1) * multiplier2;
-            var worldPosY = (int)((-posOffsetY + mousePos.Y) / mapScale + multiplier1) * multiplier2;
-            return new Vector2(worldPosX, worldPosY);
+            var worldPosX = (int)((-posOffsetX + mousePos.X * Main.UIScale) / mapScale + multiplier1) * multiplier2;
+            var worldPosY = (int)((-posOffsetY + mousePos.Y * Main.UIScale) / mapScale + multiplier1) * multiplier2;
+            return new Vector2(worldPosX , worldPosY);
         }
 
         private void PlaySound()
@@ -147,7 +143,7 @@ namespace PingMod
             var posX = projectile.position.X - Main.screenPosition.X + projectile.width * 0.5f + 1f;
             var posY = projectile.position.Y - Main.screenPosition.Y + projectile.height - Sprite.Height * 0.5f + 11f;
             Main.spriteBatch.Draw(Sprite, new Vector2(posX, posY),
-                new Rectangle(0, 0, Sprite.Width, Sprite.Height), Color.White, 
+                new Rectangle(0, 0, Sprite.Width, Sprite.Height), Color.White,
                 projectile.rotation, Sprite.Size() * 0.5f, 1, SpriteEffects.None, 0f);
         }
 

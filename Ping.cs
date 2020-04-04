@@ -59,12 +59,12 @@ namespace PingMod
                     _isMoving = false;
                     projectile.netUpdate = true;
                     PlaySound();
-                    Main.NewText("You pinged");
+                    Main.NewText("You pinged!");
                 }
             }
             else if (projectile.position != projectile.oldPosition)
             {
-                Main.NewText(Owner.name + " pinged");
+                Main.NewText(Owner.name + " pinged!");
                 PlaySound();
             }
 
@@ -77,15 +77,12 @@ namespace PingMod
             var mousePos = GetUnzoomedMousePos();
             if (Main.mapFullscreen)
             {
-                Main.NewText("Mouse in fullscreen map");
                 return GetFullscreenMapToWorldPos(mousePos);
             }
             if (InMinimap(mousePos))
             {
-                Main.NewText("Mouse in minimap");
                 return GetMinimapToWorldPos(mousePos);
             }
-            Main.NewText("Mouse in world");
             return Main.MouseWorld;
         }
 

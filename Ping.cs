@@ -23,19 +23,20 @@ namespace PingMod
         private string PingLabel => Owner.name + "s ping";
         private Texture2D Sprite => Main.projectileTexture[projectile.type];
 
-        public Ping()
-        {
-            PingMod.OnPostDrawInterface += DrawOnMiniMap;
-            PingMod.OnPostDrawFullscreenMap += DrawOnFullscreenMap;
-        }
-
         public override void SetDefaults()
         {
             projectile.width = 10;
             projectile.height = 10;
-
+            
             drawOffsetX = -10;
             drawOriginOffsetY = -11;
+
+            projectile.hide = true;
+            projectile.ai[0] = 1;
+            projectile.netUpdate = true;
+
+            PingMod.OnPostDrawInterface += DrawInterface;
+            PingMod.OnPostDrawFullscreenMap += DrawOnFullscreenMap;
         }
 
         public override void AI()
@@ -160,7 +161,6 @@ namespace PingMod
 
         public override void PostDraw(SpriteBatch spriteBatch, Color lightColor)
         {
-            DrawDistanceMarker();
             DrawGlowMask();
         }
 
@@ -180,7 +180,7 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnFullscreenMap()
         {
-            if (!Main.mapFullscreen || projectile.hide || projectile.position == Vector2.Zero)
+            if (!Main.mapFullscreen || projectile.hide)
             {
                 return;
             }
@@ -218,6 +218,12 @@ namespace PingMod
             {
                 Main.instance.MouseText(PingLabel);
             }
+        }
+
+        private void DrawInterface()
+        {
+            DrawOnMiniMap();
+            DrawDistanceMarker();
         }
 
         // Based on Main.DrawMap
@@ -267,13 +273,16 @@ namespace PingMod
         // Based on Main.DrawInterface_20_MultiplayerPlayerNames
         private void DrawDistanceMarker()
         {
-            if (projectile.hide)
+            if (Main.mapFullscreen || projectile.hide)
             {
                 return;
             }
+            PlayerInput.SetZoom_World();
             var screenWidth = Main.screenWidth;
             var screenHeight = Main.screenHeight;
             var screenPosition = Main.screenPosition;
+            PlayerInput.SetZoom_UI();
+            var uIScale = Main.UIScale;
 
             var pingLabelPos = Main.fontMouseText.MeasureString(PingLabel);
             var pingLabelPosYNegative = 0f;
@@ -283,6 +292,7 @@ namespace PingMod
             }
             var screenCenter = new Vector2(screenWidth / 2 + screenPosition.X, screenHeight / 2 + screenPosition.Y);
             var pingPos = projectile.position;
+            pingPos += (pingPos - screenCenter) * (Main.GameViewMatrix.Zoom - Vector2.One);
             var distance2 = 0f;
             var color = Owner.team < 1 ? Color.White : Main.teamColor[Owner.team];
             var distanceX = pingPos.X + projectile.width / 2 - screenCenter.X;
@@ -314,18 +324,20 @@ namespace PingMod
             {
                 pingLabelPos.Y = screenHeight - pingLabelPos.Y;
             }
+            pingLabelPos *= 1f / uIScale;
             var pingLabelPos2 = Main.fontMouseText.MeasureString(PingLabel);
+            pingLabelPos += pingLabelPos2 * (1f - uIScale) / 4f;
             if (distance2 > 0f)
             {
                 var distanceTextValue = Language.GetTextValue("GameUI.PlayerDistance", (int)(distance2 / 16f * 2f));
-                var distanceTestPosition = Main.fontMouseText.MeasureString(distanceTextValue);
-                distanceTestPosition.X = pingLabelPos.X + pingLabelPos2.X / 2f - distanceTestPosition.X / 2f;
-                distanceTestPosition.Y = pingLabelPos.Y + pingLabelPos2.Y / 2f - distanceTestPosition.Y / 2f - 20f;
-                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTestPosition.X - 2f, distanceTestPosition.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTestPosition.X + 2f, distanceTestPosition.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTestPosition.X, distanceTestPosition.Y - 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTestPosition.X, distanceTestPosition.Y + 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
-                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, distanceTestPosition, color, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+                var distanceTextPosition = Main.fontMouseText.MeasureString(distanceTextValue);
+                distanceTextPosition.X = pingLabelPos.X + pingLabelPos2.X / 2f - distanceTextPosition.X / 2f;
+                distanceTextPosition.Y = pingLabelPos.Y + pingLabelPos2.Y / 2f - distanceTextPosition.Y / 2f - 20f;
+                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTextPosition.X - 2f, distanceTextPosition.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTextPosition.X + 2f, distanceTextPosition.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTextPosition.X, distanceTextPosition.Y - 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, new Vector2(distanceTextPosition.X, distanceTextPosition.Y + 2f), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
+                Main.spriteBatch.DrawString(Main.fontMouseText, distanceTextValue, distanceTextPosition, color, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
             }
             Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, new Vector2(pingLabelPos.X - 2f, pingLabelPos.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);
             Main.spriteBatch.DrawString(Main.fontMouseText, PingLabel, new Vector2(pingLabelPos.X + 2f, pingLabelPos.Y), Color.Black, 0f, default(Vector2), 1f, SpriteEffects.None, 0f);

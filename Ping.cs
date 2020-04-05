@@ -137,6 +137,10 @@ namespace PingMod
 
         private void DrawGlowMask()
         {
+            if (Main.mapFullscreen || projectile.hide)
+            {
+                return;
+            }
             var posX = projectile.position.X - Main.screenPosition.X + projectile.width * 0.5f + 1f;
             var posY = projectile.position.Y - Main.screenPosition.Y + projectile.height - Sprite.Height * 0.5f + 11f;
             Main.spriteBatch.Draw(Sprite, new Vector2(posX, posY),
@@ -147,7 +151,7 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnFullscreenMap()
         {
-            if (projectile.hide)
+            if (!Main.mapFullscreen || projectile.hide || projectile.position == Vector2.Zero)
             {
                 return;
             }
@@ -190,7 +194,7 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnMiniMap()
         {
-            if (Main.mapStyle != 1 || projectile.hide)
+            if (Main.mapFullscreen || Main.mapStyle != 1 || projectile.hide)
             {
                 return;
             }

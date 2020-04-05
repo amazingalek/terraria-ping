@@ -13,18 +13,12 @@ namespace PingMod
 
         private Projectile _ping;
 
-        public override void Load()
-        {
-            Main.NewText($"{nameof(PingMod)} loaded");
-        }
-
         public override void PostUpdateEverything()
         {
-            if (Main.playerLoaded && _ping == null || !_ping.active)
+            if (Main.playerLoaded && (_ping == null || !_ping.active))
             {
                 _ping = Projectile.NewProjectileDirect(Main.MouseWorld, Vector2.Zero, ModContent.ProjectileType<Ping>(), 0, 0, Main.myPlayer);
                 _ping.hide = true;
-                Main.NewText("Created ping");
             }
         }
 

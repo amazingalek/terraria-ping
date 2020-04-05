@@ -16,6 +16,7 @@ namespace PingMod
     {
         private const float RotationSpeed = 0.05f;
 
+        private bool _isLoaded;
         private bool _isMoving;
         private bool _isRemoving;
 
@@ -23,28 +24,30 @@ namespace PingMod
         private string PingLabel => Owner.name + "s ping";
         private Texture2D Sprite => Main.projectileTexture[projectile.type];
 
-        public override void SetDefaults()
+        public Ping()
         {
-            projectile.width = 10;
-            projectile.height = 10;
-            
-            drawOffsetX = -10;
-            drawOriginOffsetY = -11;
-
-            projectile.hide = true;
-            projectile.ai[0] = 1;
-            projectile.netUpdate = true;
-
             PingMod.OnPostDrawInterface += DrawInterface;
             PingMod.OnPostDrawFullscreenMap += DrawOnFullscreenMap;
         }
 
+        public override void SetDefaults()
+        {
+            projectile.width = 10;
+            projectile.height = 10;
+
+            drawOffsetX = -10;
+            drawOriginOffsetY = -11;
+
+            projectile.hide = true;
+        }
+
         public override void AI()
         {
-            if (!Owner.active)
+            if (!Owner.active || !_isLoaded)
             {
-                projectile.Kill();
-                projectile.netUpdate = true;
+                _isLoaded = true;
+                projectile.hide = true;
+                projectile.ai[0] = 1;
             }
 
             if (projectile.owner == Main.myPlayer)

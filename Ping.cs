@@ -20,6 +20,7 @@ namespace PingMod
         private bool _isMoving;
         private bool _isRemoving;
 
+        private Player Me => Main.player[Main.myPlayer];
         private Player Owner => Main.player[projectile.owner];
         private string PingLabel => Owner.name + "s ping";
         private Texture2D Sprite => Main.projectileTexture[projectile.type];
@@ -98,7 +99,7 @@ namespace PingMod
         private void UpdateRemote()
         {
             projectile.hide = projectile.ai[0] == 1;
-            if (!projectile.hide && projectile.position != projectile.oldPosition)
+            if (IsVisible() && projectile.position != projectile.oldPosition)
             {
                 Main.NewText(Owner.name + " pinged!");
                 PlaySound();
@@ -138,8 +139,8 @@ namespace PingMod
 
         private Vector2 GetMinimapToWorldPos(Vector2 mousePos)
         {
-            var worldPosX = Main.player[Main.myPlayer].position.X + (16 * (mousePos.X - Main.miniMapX) - 1920) / Main.mapMinimapScale;
-            var worldPosY = Main.player[Main.myPlayer].position.Y + (16 * (mousePos.Y - Main.miniMapY) - 1920) / Main.mapMinimapScale;
+            var worldPosX = Me.position.X + (16 * (mousePos.X - Main.miniMapX) - 1920) / Main.mapMinimapScale;
+            var worldPosY = Me.position.Y + (16 * (mousePos.Y - Main.miniMapY) - 1920) / Main.mapMinimapScale;
             return new Vector2(worldPosX, worldPosY);
         }
 
@@ -162,6 +163,16 @@ namespace PingMod
             Main.PlaySound(new LegacySoundStyle(SoundID.Unlock, 0), projectile.position);
         }
 
+        private bool IsVisible()
+        {
+            return !projectile.hide && (projectile.owner == Main.myPlayer || Owner.team > 0 && Owner.team == Me.team);
+        }
+
+        public override bool PreDraw(SpriteBatch spriteBatch, Color lightColor)
+        {
+            return false;
+        }
+
         public override void PostDraw(SpriteBatch spriteBatch, Color lightColor)
         {
             DrawGlowMask();
@@ -169,7 +180,7 @@ namespace PingMod
 
         private void DrawGlowMask()
         {
-            if (Main.mapFullscreen || projectile.hide)
+            if (Main.mapFullscreen || !IsVisible())
             {
                 return;
             }
@@ -183,7 +194,7 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnFullscreenMap()
         {
-            if (!Main.mapFullscreen || projectile.hide)
+            if (!Main.mapFullscreen || !IsVisible())
             {
                 return;
             }
@@ -232,7 +243,7 @@ namespace PingMod
         // Based on Main.DrawMap
         private void DrawOnMiniMap()
         {
-            if (Main.mapFullscreen || Main.mapStyle != 1 || projectile.hide)
+            if (Main.mapFullscreen || Main.mapStyle != 1 || !IsVisible())
             {
                 return;
             }
@@ -276,7 +287,7 @@ namespace PingMod
         // Based on Main.DrawInterface_20_MultiplayerPlayerNames
         private void DrawDistanceMarker()
         {
-            if (Main.mapFullscreen || projectile.hide)
+            if (Main.mapFullscreen || !IsVisible())
             {
                 return;
             }
@@ -323,7 +334,7 @@ namespace PingMod
                 pingLabelPos.X = screenWidth / 2 + distanceX * distance - pingLabelPos.X / 2f;
                 pingLabelPos.Y = screenHeight / 2 + distanceY * distance;
             }
-            if (Main.player[Main.myPlayer].gravDir == -1f)
+            if (Me.gravDir == -1f)
             {
                 pingLabelPos.Y = screenHeight - pingLabelPos.Y;
             }

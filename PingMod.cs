@@ -17,9 +17,17 @@ namespace PingMod
         {
             if (Main.playerLoaded && (_ping == null || !_ping.active))
             {
-                _ping = Projectile.NewProjectileDirect(Main.MouseWorld, Vector2.Zero, ModContent.ProjectileType<Ping>(), 0, 0, Main.myPlayer);
-                _ping.hide = true;
+                _ping = CreatePing();
             }
+        }
+
+        private Projectile CreatePing()
+        {
+            var ping = Projectile.NewProjectileDirect(Main.MouseWorld, Vector2.Zero, ModContent.ProjectileType<Ping>(), 0, 0, Main.myPlayer);
+            ping.hide = true;
+            ping.ai[0] = 1;
+            ping.netUpdate = true;
+            return ping;
         }
 
         public override void PostDrawInterface(SpriteBatch spriteBatch)

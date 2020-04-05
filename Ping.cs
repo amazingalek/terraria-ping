@@ -17,6 +17,7 @@ namespace PingMod
         private const float RotationSpeed = 0.05f;
 
         private bool _isMoving;
+        private bool _isRemoving;
 
         private Player Owner => Main.player[projectile.owner];
         private string PingLabel => Owner.name + "s ping";
@@ -47,29 +48,57 @@ namespace PingMod
 
             if (projectile.owner == Main.myPlayer)
             {
-                if (Main.mouseLeft && Keyboard.GetState().IsKeyDown(Keys.LeftAlt))
-                {
-                    projectile.position = GetPingPosition();
-                    projectile.hide = false;
-                    _isMoving = true;
-                }
-
-                if (_isMoving && !Main.mouseLeft)
-                {
-                    _isMoving = false;
-                    projectile.netUpdate = true;
-                    PlaySound();
-                    Main.NewText("You pinged!");
-                }
+                UpdateLocal();
             }
-            else if (projectile.position != projectile.oldPosition)
+            else
             {
-                Main.NewText(Owner.name + " pinged!");
-                PlaySound();
+                UpdateRemote();
             }
 
             projectile.rotation += RotationSpeed;
             projectile.timeLeft = 100;
+        }
+
+        private void UpdateLocal()
+        {
+            if (Main.mouseLeft && Keyboard.GetState().IsKeyDown(Keys.LeftAlt) && !_isRemoving)
+            {
+                projectile.position = GetPingPosition();
+                projectile.hide = false;
+                _isMoving = true;
+            }
+            if (_isMoving && !Main.mouseLeft && !_isRemoving)
+            {
+                _isMoving = false;
+                projectile.ai[0] = 0;
+                projectile.netUpdate = true;
+                PlaySound();
+                Main.NewText("You pinged!");
+            }
+
+            if (!_isRemoving && Main.mouseRight && Keyboard.GetState().IsKeyDown(Keys.LeftAlt))
+            {
+                _isRemoving = true;
+                _isMoving = false;
+                projectile.hide = true;
+                projectile.ai[0] = 1;
+                projectile.netUpdate = true;
+            }
+            if (_isRemoving && !Main.mouseRight && !Main.mouseLeft)
+            {
+                _isRemoving = false;
+                _isMoving = false;
+            }
+        }
+
+        private void UpdateRemote()
+        {
+            projectile.hide = projectile.ai[0] == 1;
+            if (!projectile.hide && projectile.position != projectile.oldPosition)
+            {
+                Main.NewText(Owner.name + " pinged!");
+                PlaySound();
+            }
         }
 
         private Vector2 GetPingPosition()
@@ -121,7 +150,7 @@ namespace PingMod
             var posOffsetY = -mapPosY + Main.screenHeight / 2 + multiplier1 * mapScale;
             var worldPosX = (int)((-posOffsetX + mousePos.X * Main.UIScale) / mapScale + multiplier1) * multiplier2;
             var worldPosY = (int)((-posOffsetY + mousePos.Y * Main.UIScale) / mapScale + multiplier1) * multiplier2;
-            return new Vector2(worldPosX , worldPosY);
+            return new Vector2(worldPosX, worldPosY);
         }
 
         private void PlaySound()
